@@ -1,0 +1,90 @@
+# Render Blueprint — see DEPLOYMENT.md for the full cutover runbook.
+# Deploys the two backend services from this monorepo's root; the frontend
+# deploys separately to Vercel (Render doesn't host static SPAs as well).
+#
+# Env vars marked `sync: false` are secrets — Render prompts for them once
+# in the dashboard on first deploy and never stores them in this file.
+services:
+  - type: web
+    name: tpo-server
+    runtime: node
+    plan: starter
+    buildCommand: >
+      npm ci &&
+      npm run build --workspace=packages/shared &&
+      npm run build --workspace=packages/db &&
+      npm run build --workspace=apps/server
+    startCommand: node apps/server/dist/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "5000"
+      - key: CLIENT_ORIGIN
+        sync: false # the deployed Vercel URL, e.g. https://your-app.vercel.app
+      - key: COLLEGE_NAME
+        sync: false # this college's name — used in email templates; match VITE_COLLEGE_NAME on Vercel
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRES
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES
+        value: 30d
+      - key: MONGODB_URI
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false # set this to require real email verification in production —
+        # leaving it unset auto-verifies every registration (see ARCHITECTURE.md §14)
+      - key: EMAIL_FROM
+        sync: false
+      - key: GMAIL_USER
+        sync: false # zero-domain email fallback, used only if RESEND_API_KEY is unset — see DEPLOYMENT.md §4a
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false # query-embedding only — see apps/server/src/ai/geminiClient.ts
+      - key: GEMINI_EMBEDDING_MODEL
+        value: gemini-embedding-2
+      - key: SENTRY_DSN_SERVER
+        sync: false
+
+  - type: worker
+    name: tpo-ai-worker
+    runtime: node
+    plan: starter
+    buildCommand: >
+      npm ci &&
+      npm run build --workspace=packages/shared &&
+      npm run build --workspace=packages/db &&
+      npm run build --workspace=apps/ai-worker
+    startCommand: node apps/ai-worker/dist/worker.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: AI_SCREENING_MODEL
+        value: gemini-3.6-flash
+      - key: AI_MAX_RESUMES_PER_BATCH
+        value: "200"
+      - key: GEMINI_EMBEDDING_MODEL
+        value: gemini-embedding-2
+      - key: DRY_RUN
+        value: "false"
+      - key: SENTRY_DSN_WORKER
+        sync: false

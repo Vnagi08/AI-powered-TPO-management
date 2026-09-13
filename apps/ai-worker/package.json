@@ -1,0 +1,31 @@
+{
+  "name": "@tpo/ai-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --conditions=development src/worker.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/worker.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@google/genai": "^2.22.0",
+    "@tpo/db": "*",
+    "@tpo/shared": "*",
+    "bullmq": "^5.21.2",
+    "dotenv": "^16.4.5",
+    "ioredis": "^5.4.1",
+    "mammoth": "^1.8.0",
+    "pdf-parse": "^1.1.1",
+    "pino": "^9.5.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/pdf-parse": "^1.1.4",
+    "pino-pretty": "^11.3.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

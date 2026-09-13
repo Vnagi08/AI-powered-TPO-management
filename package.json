@@ -1,0 +1,26 @@
+{
+  "name": "ai-tpo-management-system",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n client,server,worker -c blue,green,yellow \"npm:dev:client\" \"npm:dev:server\" \"npm:dev:worker\"",
+    "dev:client": "npm run dev --workspace=apps/client",
+    "dev:server": "npm run dev --workspace=apps/server",
+    "dev:worker": "npm run dev --workspace=apps/ai-worker",
+    "build": "npm run build --workspace=packages/shared && npm run build --workspace=packages/db && npm run build --workspace=apps/server && npm run build --workspace=apps/ai-worker && npm run build --workspace=apps/client",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
